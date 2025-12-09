@@ -327,7 +327,9 @@ class _CreatebooklistState extends State<Createbooklist> {
           children: [
             Radio(
               value: type,
+              // ignore: deprecated_member_use
               groupValue: selectedShareType,
+              // ignore: deprecated_member_use
               onChanged: (value) =>
                   setState(() => selectedShareType = value.toString()),
               activeColor: Colors.amber,
