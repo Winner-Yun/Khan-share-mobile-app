@@ -117,7 +117,9 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 color: isSelected ? Colors.amber : Colors.grey.shade300,
                 width: 2,
               ),
-              color: isSelected ? Colors.amber.withOpacity(0.1) : Colors.white,
+              color: isSelected
+                  ? Colors.amber.withValues(alpha: 0.1)
+                  : Colors.white,
             ),
             child: Icon(
               icon,
