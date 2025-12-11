@@ -1,0 +1,386 @@
+{
+  "database_version": "1.0",
+  "generated_at": "2025-12-11T16:00:00Z",
+  "users": [
+    {
+      "user_id": "user_001",
+      "name": "Yun Winner",
+      "email": "Winner.y@khmer.com",
+      "password": "hashed_secret_123",
+      "location": "Phnom Penh, Cambodia",
+      "member_since": "January 2025",
+      "profile_image": "https://randomuser.me/api/portraits/men/32.jpg",
+      "bio": "Book lover and passionate reader. I believe books should be shared, not stored. Let's build a reading community together! 📚",
+      "points": 2480,
+      "stats": {
+        "donated": 23,
+        "exchanged": 12,
+        "borrowed": 8
+      },
+      "settings": {
+        "language": "English",
+        "notifications_enabled": true,
+        "dark_mode_enabled": false
+      },
+      "coordinates": {
+        "latitude": 11.5564,
+        "longitude": 104.9282
+      }
+    },
+    {
+      "user_id": "user_srey_mom",
+      "name": "Srey Mom",
+      "email": "srey.mom@khmer.com",
+      "password": "hashed_secret_456",
+      "location": "Phnom Penh, Cambodia",
+      "member_since": "February 2025",
+      "profile_image": "https://randomuser.me/api/portraits/women/44.jpg",
+      "bio": "Fantasy fanatic and fiction lover. Always happy to trade! ✨",
+      "points": 1200,
+      "stats": {
+        "donated": 5,
+        "exchanged": 8,
+        "borrowed": 2
+      },
+      "coordinates": {
+        "latitude": 11.558,
+        "longitude": 104.929
+      }
+    },
+    {
+      "user_id": "user_bora_dev",
+      "name": "Bora Dev",
+      "email": "bora.dev@khmer.com",
+      "password": "hashed_secret_789",
+      "location": "Tuol Kork, Cambodia",
+      "member_since": "March 2025",
+      "profile_image": "https://randomuser.me/api/portraits/men/45.jpg",
+      "bio": "Tech books only. Python, Flutter, and AI resources.",
+      "points": 350,
+      "stats": {
+        "donated": 2,
+        "exchanged": 1,
+        "borrowed": 5
+      },
+      "coordinates": {
+        "latitude": 11.57,
+        "longitude": 104.89
+      }
+    },
+    {
+      "user_id": "user_lisa_reader",
+      "name": "Lisa Reader",
+      "email": "lisa.read@khmer.com",
+      "password": "hashed_secret_999",
+      "location": "BKK1, Cambodia",
+      "member_since": "April 2025",
+      "profile_image": "https://randomuser.me/api/portraits/women/68.jpg",
+      "bio": "Coffee and books. ☕📖 Usually at Brown Coffee BKK.",
+      "points": 890,
+      "stats": {
+        "donated": 10,
+        "exchanged": 4,
+        "borrowed": 12
+      },
+      "coordinates": {
+        "latitude": 11.55,
+        "longitude": 104.922
+      }
+    }
+  ],
+  "books": [
+    {
+      "id": "book_1",
+      "owner_id": "user_srey_mom",
+      "title": "The Catcher in the Rye",
+      "author": "J.D. Salinger",
+      "action": "Exchange",
+      "status": "Available",
+      "category": "Comedy",
+      "condition": "Good",
+      "language": "English",
+      "description": "A classic novel of teenage angst and alienation.",
+      "distance": "5.3 km",
+      "posted_time": "2 days ago",
+      "owner_name": "Srey Mom",
+      "owner_image_url": "https://randomuser.me/api/portraits/women/44.jpg",
+      "image": "https://m.media-amazon.com/images/I/71QKQ9mwV7L._AC_UF1000,1000_QL80_.jpg",
+      "location": {
+        "latitude": 11.558,
+        "longitude": 104.929
+      }
+    },
+    {
+      "id": "book_2",
+      "owner_id": "user_srey_mom",
+      "title": "Harry Potter",
+      "author": "J.K. Rowling",
+      "action": "Borrow",
+      "status": "Available",
+      "category": "Fantasy",
+      "condition": "Excellent",
+      "language": "English",
+      "description": "The first book in the Harry Potter series.",
+      "distance": "2.1 km",
+      "posted_time": "5 hours ago",
+      "owner_name": "Srey Mom",
+      "owner_image_url": "https://randomuser.me/api/portraits/women/44.jpg",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsfxrcUtlaLqSTTpA7N9cWKIopvRNtXngM2A&s",
+      "location": {
+        "latitude": 11.554,
+        "longitude": 104.927
+      }
+    },
+    {
+      "id": "book_3",
+      "owner_id": "user_srey_mom",
+      "title": "Anime Story",
+      "author": "Unknown",
+      "action": "Exchange",
+      "status": "Available",
+      "category": "Manga",
+      "condition": "Fair",
+      "language": "English",
+      "description": "A collection of short anime stories.",
+      "distance": "1.2 km",
+      "posted_time": "1 day ago",
+      "owner_name": "Srey Mom",
+      "owner_image_url": "https://randomuser.me/api/portraits/women/44.jpg",
+      "image": "https://marketplace.canva.com/EAGUhHGuQOg/1/0/1003w/canva-orange-and-blue-anime-cartoon-illustrative-novel-story-book-cover-WZE2VIj5AVQ.jpg",
+      "location": {
+        "latitude": 11.56,
+        "longitude": 104.93
+      }
+    },
+    {
+      "id": "book_4",
+      "owner_id": "user_srey_mom",
+      "title": "Flutter Development",
+      "author": "Google",
+      "action": "Donation",
+      "status": "Available",
+      "category": "Education",
+      "condition": "New",
+      "language": "English",
+      "description": "Complete guide to building Flutter apps.",
+      "distance": "0.5 km",
+      "posted_time": "Just now",
+      "owner_name": "Srey Mom",
+      "owner_image_url": "https://randomuser.me/api/portraits/women/44.jpg",
+      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS36GaImhQXaqzdQkhgvQ1ZZtbru_p5-PsOaw&s",
+      "location": {
+        "latitude": 11.55,
+        "longitude": 104.92
+      }
+    },
+    {
+      "id": "book_101",
+      "owner_id": "user_001",
+      "title": "To Kill a Mockingbird",
+      "author": "Harper Lee",
+      "action": "Donation",
+      "status": "Available",
+      "category": "Classic",
+      "condition": "Vintage",
+      "language": "English",
+      "description": "Harper Lee's Pulitzer Prize-winning masterwork.",
+      "distance": "0 km",
+      "posted_time": "1 week ago",
+      "owner_name": "Yun Winner",
+      "owner_image_url": "https://randomuser.me/api/portraits/men/32.jpg",
+      "image": "https://m.media-amazon.com/images/I/81gepf1eMqL._AC_UF1000,1000_QL80_.jpg",
+      "location": {
+        "latitude": 11.5564,
+        "longitude": 104.9282
+      }
+    },
+    {
+      "id": "book_102",
+      "owner_id": "user_001",
+      "title": "1984",
+      "author": "George Orwell",
+      "action": "Exchange",
+      "status": "Available",
+      "category": "Dystopian",
+      "condition": "Used",
+      "language": "English",
+      "description": "Among the seminal texts of the 20th century.",
+      "distance": "0 km",
+      "posted_time": "2 weeks ago",
+      "owner_name": "Yun Winner",
+      "owner_image_url": "https://randomuser.me/api/portraits/men/32.jpg",
+      "image": "https://m.media-amazon.com/images/I/71kxa1-0mfL._AC_UF1000,1000_QL80_.jpg",
+      "location": {
+        "latitude": 11.5564,
+        "longitude": 104.9282
+      }
+    },
+    {
+      "id": "book_201",
+      "owner_id": "user_bora_dev",
+      "title": "Clean Code",
+      "author": "Robert C. Martin",
+      "action": "Exchange",
+      "status": "Available",
+      "category": "Education",
+      "condition": "Good",
+      "language": "English",
+      "description": "A Handbook of Agile Software Craftsmanship.",
+      "distance": "3.2 km",
+      "posted_time": "3 days ago",
+      "owner_name": "Bora Dev",
+      "owner_image_url": "https://randomuser.me/api/portraits/men/45.jpg",
+      "image": "https://m.media-amazon.com/images/I/41xShlnTZTL._SX376_BO1,204,203,200_.jpg",
+      "location": {
+        "latitude": 11.57,
+        "longitude": 104.89
+      }
+    },
+    {
+      "id": "book_301",
+      "owner_id": "user_lisa_reader",
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "action": "Borrow",
+      "status": "Available",
+      "category": "Romance",
+      "condition": "Excellent",
+      "language": "English",
+      "description": "A romantic novel of manners written by Jane Austen.",
+      "distance": "1.5 km",
+      "posted_time": "1 hour ago",
+      "owner_name": "Lisa Reader",
+      "owner_image_url": "https://randomuser.me/api/portraits/women/68.jpg",
+      "image": "https://m.media-amazon.com/images/I/71Q1tPupKjL._AC_UF1000,1000_QL80_.jpg",
+      "location": {
+        "latitude": 11.55,
+        "longitude": 104.922
+      }
+    }
+  ],
+  "chats": [
+    {
+      "chat_id": "chat_101",
+      "partner_id": "user_srey_mom",
+      "partner_name": "Srey Mom",
+      "partner_image": "https://randomuser.me/api/portraits/women/44.jpg",
+      "last_message": "Is the book still available for exchange?",
+      "timestamp": "2 mins ago",
+      "unread_count": 1,
+      "is_online": true,
+      "messages": [
+        {
+          "sender_id": "user_srey_mom",
+          "text": "Hi Yun! I saw your post about 1984.",
+          "time": "10:00 AM"
+        },
+        {
+          "sender_id": "user_001",
+          "text": "Hey! Yes, it is.",
+          "time": "10:05 AM"
+        },
+        {
+          "sender_id": "user_srey_mom",
+          "text": "Is the book still available for exchange?",
+          "time": "10:06 AM"
+        }
+      ]
+    },
+    {
+      "chat_id": "chat_102",
+      "partner_id": "user_bora_dev",
+      "partner_name": "Bora Dev",
+      "partner_image": "https://randomuser.me/api/portraits/men/45.jpg",
+      "last_message": "Thanks for the book! I'll return it next week.",
+      "timestamp": "1 day ago",
+      "unread_count": 0,
+      "is_online": false,
+      "messages": [
+        {
+          "sender_id": "user_001",
+          "text": "Hi Bora, hope the Flutter book helps.",
+          "time": "Yesterday, 9:00 AM"
+        },
+        {
+          "sender_id": "user_bora_dev",
+          "text": "Thanks for the book! I'll return it next week.",
+          "time": "Yesterday, 10:30 AM"
+        }
+      ]
+    },
+    {
+      "chat_id": "chat_103",
+      "partner_id": "user_lisa_reader",
+      "partner_name": "Lisa Reader",
+      "partner_image": "https://randomuser.me/api/portraits/women/68.jpg",
+      "last_message": "Great, see you at the cafe at 5 PM.",
+      "timestamp": "3 days ago",
+      "unread_count": 0,
+      "is_online": false,
+      "messages": [
+        {
+          "sender_id": "user_lisa_reader",
+          "text": "Are you free to meet for the exchange?",
+          "time": "Monday, 2:00 PM"
+        },
+        {
+          "sender_id": "user_001",
+          "text": "Great, see you at the cafe at 5 PM.",
+          "time": "Monday, 2:15 PM"
+        }
+      ]
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_001",
+      "recipient_id": "user_001",
+      "type": "message",
+      "title": "New Message",
+      "body": "Srey Mom sent you a message about 'The Catcher in the Rye'",
+      "timestamp": "2 mins ago",
+      "is_read": false,
+      "data": {
+        "chat_id": "chat_101",
+        "sender_id": "user_srey_mom"
+      }
+    },
+    {
+      "id": "notif_002",
+      "recipient_id": "user_001",
+      "type": "system",
+      "title": "Request Accepted",
+      "body": "Your request to borrow 'Harry Potter' was accepted by Dara!",
+      "timestamp": "1 hour ago",
+      "is_read": true,
+      "data": {
+        "book_id": "book_2"
+      }
+    },
+    {
+      "id": "notif_003",
+      "recipient_id": "user_001",
+      "type": "alert",
+      "title": "Book Return Reminder",
+      "body": "Reminder: 'Flutter Development' is due for return tomorrow.",
+      "timestamp": "5 hours ago",
+      "is_read": true,
+      "data": {
+        "book_id": "book_4"
+      }
+    },
+    {
+      "id": "notif_004",
+      "recipient_id": "user_srey_mom",
+      "type": "system",
+      "title": "Exchange Request",
+      "body": "Yun Winner wants to exchange '1984' with you.",
+      "timestamp": "10 mins ago",
+      "is_read": false,
+      "data": {
+        "book_id": "book_102",
+        "requester_id": "user_001"
+      }
+    }
+  ]
+}
