@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:khan_share_mobile_app/config/appColors.dart';
 
 class BookDetailScreen extends StatefulWidget {
   // We pass the book data from the Map Screen
@@ -15,8 +14,28 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   // State variable to handle the "Favorite" heart toggle
   bool isLiked = false;
 
+  // --- HELPER: GET COLOR BASED ON ACTION ---
+  // Matches the logic in MapViewScreen for consistency
+  Color _getActionColor(String action) {
+    switch (action) {
+      case 'Donation':
+      case 'Donate':
+        return Colors.green;
+      case 'Borrow':
+        return Colors.deepPurple;
+      case 'Exchange':
+        return Colors.orange;
+      default:
+        return Colors.teal;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Extract dynamic data
+    String action = widget.book['action'] ?? 'Available';
+    Color actionColor = _getActionColor(action);
+
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -67,34 +86,48 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               // Book Image
               Center(
                 child: Hero(
-                  tag: widget.book['title'], // Smooth animation from list
+                  // Use ID if available, otherwise title for the tag
+                  tag: widget.book['id'] ?? widget.book['title'],
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: Image.network(
                       widget.book['image'],
-                      height: 320,
+                      height: 400,
                       width: double.infinity,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 320,
+                        width: double.infinity,
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // "Free Donation" Badge
+              // Action Badge (Dynamic)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE0F7FA), // Light Green/Cyan
+                  // Light background based on action color
+                  color: actionColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  "🎁 Free Donation",
+                child: Text(
+                  action, // e.g., "Exchange", "Borrow"
                   style: TextStyle(
-                    color: Color(0xFF00BFA5), // Darker Teal
+                    color: actionColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -166,7 +199,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      widget.book['distance'] ?? "2.5 km",
+                      widget.book['distance'] ?? "N/A",
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -176,6 +209,45 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 ],
               ),
               const SizedBox(height: 25),
+
+              // Owner Info Row (New Section)
+              if (widget.book.containsKey('user')) ...[
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: widget.book['owner_image_url'] != null
+                          ? NetworkImage(widget.book['owner_image_url'])
+                          : null,
+                      child: widget.book['owner_image_url'] == null
+                          ? const Icon(Icons.person, color: Colors.grey)
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.book['user'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          widget.book['days_ago'] ?? 'Recently',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 25),
+              ],
 
               // Details Card (Condition, Category, Language)
               Container(
@@ -188,7 +260,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                   children: [
                     _buildDetailRow("Condition", "Very Good"),
                     const SizedBox(height: 12),
-                    _buildDetailRow("Category", "Fiction"),
+                    // Use dynamic category
+                    _buildDetailRow(
+                      "Category",
+                      widget.book['category'] ?? "General",
+                    ),
                     const SizedBox(height: 12),
                     _buildDetailRow("Language", "English"),
                   ],
@@ -249,22 +325,23 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Request sent successfully!"),
+                      SnackBar(
+                        content: Text("Request sent for $action!"),
+                        backgroundColor: actionColor,
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.iconAppbar, // Green color
+                    backgroundColor: actionColor, // Dynamic Color
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    "Request Book",
-                    style: TextStyle(
+                  child: Text(
+                    "Request $action", // e.g. "Request Donation"
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

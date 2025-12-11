@@ -304,7 +304,10 @@ class _CreatebooklistState extends State<Createbooklist> {
         const SizedBox(height: 10),
         _shareOption("Exchange", "Trade with another book you want to read"),
         const SizedBox(height: 10),
-        _shareOption("Lend", "Lend your book temporarily, get it back later"),
+        _shareOption(
+          "Borrow",
+          "Lend your book temporarily and get it back later",
+        ),
       ],
     );
   }

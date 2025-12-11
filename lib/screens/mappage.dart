@@ -33,42 +33,61 @@ class _MapViewScreenState extends State<MapViewScreen> {
   final List<Map<String, dynamic>> _books = [
     {
       "id": "book_1",
-      "title": "To Kill a Mockingbird",
-      "author": "Harper Lee",
-      "distance": "2.5 km",
-      "action": "Donate",
-      "image":
-          "https://m.media-amazon.com/images/I/81OthjkJBuL._AC_UF1000,1000_QL80_.jpg",
+      'title': 'The Catcher in the Rye',
+      'author': 'J.D. Salinger',
+      'action': 'Exchange',
+      'distance': '5.3 km',
+      'category': 'Comedy',
+      'readers': null,
+      'days_ago': '2 days ago',
+      'user': 'Srey Mom',
+      'image':
+          'https://m.media-amazon.com/images/I/71QKQ9mwV7L._AC_UF1000,1000_QL80_.jpg',
+      'owner_image_url': 'https://randomuser.me/api/portraits/women/44.jpg',
       "location": const LatLng(11.5580, 104.9290),
     },
     {
       "id": "book_2",
-      "title": "1984",
-      "author": "George Orwell",
-      "distance": "1.8 km",
-      "action": "Exchange",
-      "image":
-          "https://m.media-amazon.com/images/I/71kxa1-0mfL._AC_UF1000,1000_QL80_.jpg",
+      'title': 'Harry Potter',
+      'author': 'J.K. Rowling',
+      'action': 'Borrow',
+      'distance': '2.1 km',
+      'category': 'Fantasy',
+      'readers': null,
+      'days_ago': '5 hours ago',
+      'user': 'Srey Mom',
+      'image':
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsfxrcUtlaLqSTTpA7N9cWKIopvRNtXngM2A&s',
+      'owner_image_url': 'https://randomuser.me/api/portraits/women/44.jpg',
       "location": const LatLng(11.5540, 104.9270),
     },
     {
       "id": "book_3",
-      "title": "The Great Gatsby",
-      "author": "F. Scott Fitzgerald",
-      "distance": "3.2 km",
-      "action": "Donate",
-      "image":
-          "https://m.media-amazon.com/images/I/71FTb9X6wsL._AC_UF1000,1000_QL80_.jpg",
+      'title': 'Anime Story',
+      'author': 'Unknown',
+      'action': 'Exchange',
+      'distance': '1.2 km',
+      'category': 'Manga',
+      'readers': null,
+      'days_ago': '1 day ago',
+      'user': 'Srey Mom',
+      'image':
+          'https://marketplace.canva.com/EAGUhHGuQOg/1/0/1003w/canva-orange-and-blue-anime-cartoon-illustrative-novel-story-book-cover-WZE2VIj5AVQ.jpg',
+      'owner_image_url': 'https://randomuser.me/api/portraits/women/44.jpg',
       "location": const LatLng(11.5600, 104.9300),
     },
     {
       "id": "book_4",
-      "title": "Harry Potter",
-      "author": "J.K. Rowling",
-      "distance": "5.0 km",
-      "action": "Exchange",
-      "image":
-          "https://m.media-amazon.com/images/I/71-++hbbERL._AC_UF1000,1000_QL80_.jpg",
+      'title': 'Flutter Development',
+      'author': 'Google',
+      'action': 'Donation',
+      'distance': '0.5 km',
+      'category': 'Education',
+      'readers': null,
+      'days_ago': 'Just now',
+      'user': 'Srey Mom',
+      'image':
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS36GaImhQXaqzdQkhgvQ1ZZtbru_p5-PsOaw&s',
       "location": const LatLng(11.5500, 104.9200),
     },
   ];
@@ -77,6 +96,21 @@ class _MapViewScreenState extends State<MapViewScreen> {
   void initState() {
     super.initState();
     _loadBookMarkers();
+  }
+
+  // --- HELPER: GET COLOR BASED ON ACTION ---
+  Color _getActionColor(String action) {
+    switch (action) {
+      case 'Donation':
+      case 'Donate':
+        return Colors.green;
+      case 'Borrow':
+        return Colors.deepPurple;
+      case 'Exchange':
+        return Colors.orange;
+      default:
+        return Colors.teal;
+    }
   }
 
   // --- NAVIGATION HELPER ---
@@ -88,7 +122,11 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 
   // --- IMAGE PROCESSING FOR MARKERS ---
-  Future<BitmapDescriptor> _createCustomMarkerBitmap(String url) async {
+  // UPDATED: Now accepts a borderColor
+  Future<BitmapDescriptor> _createCustomMarkerBitmap(
+    String url,
+    Color borderColor,
+  ) async {
     try {
       // 1. Download image
       final ByteData data = await NetworkAssetBundle(Uri.parse(url)).load("");
@@ -110,15 +148,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
       final Paint paint = Paint()..isAntiAlias = true;
       final double radius = size / 2;
 
-      // Draw White Border Circle
+      // Draw White Background Circle
       paint.color = Colors.white;
+      paint.style = PaintingStyle.fill;
       canvas.drawCircle(Offset(radius, radius), radius, paint);
 
-      // Draw Teal Border Outline (Optional)
-      paint.color = Colors.teal;
+      // Draw Colored Border Outline (Dynamic Color)
+      paint.color = borderColor;
       paint.style = PaintingStyle.stroke;
-      paint.strokeWidth = 4;
-      canvas.drawCircle(Offset(radius, radius), radius - 2, paint);
+      paint.strokeWidth = 6; // Made slightly thicker for visibility
+      canvas.drawCircle(Offset(radius, radius), radius - 3, paint);
 
       // Clip Path for the Image (Inner Circle)
       paint.style = PaintingStyle.fill;
@@ -163,6 +202,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
       return BitmapDescriptor.fromBytes(uint8List);
     } catch (e) {
       debugPrint("Error loading marker image: $e");
+      // Fallback with hue based on color approximation could be added here
       return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
     }
   }
@@ -172,7 +212,14 @@ class _MapViewScreenState extends State<MapViewScreen> {
     Set<Marker> newMarkers = {};
 
     for (var book in _books) {
-      BitmapDescriptor icon = await _createCustomMarkerBitmap(book['image']);
+      // Get color based on book action
+      Color bookColor = _getActionColor(book['action']);
+
+      // Pass color to marker generator
+      BitmapDescriptor icon = await _createCustomMarkerBitmap(
+        book['image'],
+        bookColor,
+      );
 
       newMarkers.add(
         Marker(
@@ -200,30 +247,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
         _markers = newMarkers;
       });
     }
-  }
-
-  void _setUserPin(LatLng tappedPoint) {
-    setState(() {
-      _selectedBook = null;
-    });
-
-    final userMarker = Marker(
-      markerId: const MarkerId("user_pin"),
-      position: tappedPoint,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-    );
-
-    setState(() {
-      _userPinMarker = userMarker;
-      _markers.add(userMarker);
-    });
-  }
-
-  void _clearUserPin() {
-    setState(() {
-      _userPinMarker = null;
-    });
-    _loadBookMarkers();
   }
 
   // --- MAP OPTIONS MODAL ---
@@ -332,6 +355,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
   // --- CUSTOM POPUP WIDGET ---
   Widget _buildCustomPopup(Map<String, dynamic> book) {
+    // Get Dynamic Color
+    Color actionColor = _getActionColor(book['action']);
+
     return Positioned(
       top: 260,
       left: 40,
@@ -349,6 +375,11 @@ class _MapViewScreenState extends State<MapViewScreen> {
                 offset: Offset(0, 4),
               ),
             ],
+            // Optional: Add a subtle border matching the action
+            border: Border.all(
+              color: actionColor.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
           child: Stack(
             children: [
@@ -389,8 +420,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
                           Text(
                             book['distance'],
                             style: TextStyle(
-                              color: Colors.teal[700],
+                              color: actionColor, // Use dynamic color
                               fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -400,8 +432,8 @@ class _MapViewScreenState extends State<MapViewScreen> {
                                 onTap: () => _navigateToDetail(book),
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.teal,
+                                  decoration: BoxDecoration(
+                                    color: actionColor, // Use dynamic color
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -417,13 +449,15 @@ class _MapViewScreenState extends State<MapViewScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue[50],
+                                    color: actionColor.withValues(
+                                      alpha: 0.1,
+                                    ), // Dynamic shade
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.share,
                                     size: 16,
-                                    color: Colors.blue,
+                                    color: actionColor, // Dynamic color
                                   ),
                                 ),
                               ),
@@ -477,8 +511,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
                   setState(() {
                     _selectedBook = null;
                   });
-                } else {
-                  _setUserPin(point);
                 }
               },
               zoomControlsEnabled: false,
@@ -528,23 +560,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
               },
             ),
           ),
-
-          // 6. CLEAR PIN BUTTON
-          if (_userPinMarker != null)
-            Positioned(
-              top: 260, // Moved down slightly
-              right: 16,
-              child: FloatingActionButton.extended(
-                heroTag: "clearBtn",
-                onPressed: _clearUserPin,
-                backgroundColor: Colors.white,
-                icon: const Icon(Icons.close, color: Colors.red),
-                label: const Text(
-                  "Clear Pin",
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-            ),
 
           // 7. DRAGGABLE LIST SHEET
           DraggableScrollableSheet(
@@ -621,12 +636,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
                             action: b["action"],
                             imageUrl: b["image"],
                             onTap: () {
-                              _mapController?.animateCamera(
-                                CameraUpdate.newLatLngZoom(b['location'], 15.0),
-                              );
-                              setState(() {
-                                _selectedBook = b;
-                              });
+                              _navigateToDetail(b);
                             },
                           );
                         },
@@ -684,7 +694,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     );
   }
 
-  // ------------------ BOOK CARD (Unchanged) ------------------
+  // ------------------ BOOK CARD (UPDATED) ------------------
   Widget _buildBookCard({
     required String title,
     required String author,
@@ -693,6 +703,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
     required String imageUrl,
     required VoidCallback onTap,
   }) {
+    // Determine Color based on action
+    Color actionColor = _getActionColor(action);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -755,17 +768,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: action == "Donate"
-                    ? Colors.green[100]
-                    : Colors.orange[100],
+                color: actionColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: actionColor.withValues(alpha: 0.3)),
               ),
               child: Text(
                 action,
                 style: TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: action == "Donate" ? Colors.green : Colors.orange,
+                  fontWeight: FontWeight.w600,
+                  color: actionColor,
                 ),
               ),
             ),
