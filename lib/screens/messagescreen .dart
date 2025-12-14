@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:khan_share_mobile_app/config/appColors.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:khan_share_mobile_app/screens/chatscreen.dart';
 
 class MessageScreen extends StatefulWidget {
@@ -14,33 +14,40 @@ class _MessageScreenState extends State<MessageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Access Theme Data
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: theme.scaffoldBackgroundColor, // Dynamic Background
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "Messages",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColor.textAppbar,
+          style: GoogleFonts.poppins(
+            // Use dynamic primary color
+            color: Colors.amber,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
           ),
         ),
         centerTitle: true,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage(
-                "assets/images/background.jpg",
-              ), // your image path
+              image: AssetImage("assets/images/background.jpg"),
               fit: BoxFit.cover,
+              opacity: isDark ? 0.2 : 0,
+              // Lower opacity to blend better with themes
             ),
           ),
         ),
       ),
       body: Column(
         children: [
-          _buildSearchField(),
-          Expanded(child: _buildMessageList()),
+          _buildSearchField(theme, colors),
+          Expanded(child: _buildMessageList(theme, colors)),
         ],
       ),
     );
@@ -49,16 +56,22 @@ class _MessageScreenState extends State<MessageScreen> {
   // ----------------------------------------
   // SEARCH FIELD
   // ----------------------------------------
-  Widget _buildSearchField() {
+  Widget _buildSearchField(ThemeData theme, ColorScheme colors) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: TextField(
         controller: _searchController,
+        style: TextStyle(color: colors.onSurface), // Typing text color
         decoration: InputDecoration(
           hintText: "Search...",
-          prefixIcon: const Icon(Icons.search),
+          hintStyle: TextStyle(color: colors.onSurface.withValues(alpha: 0.5)),
+          prefixIcon: Icon(
+            Icons.search,
+            color: colors.onSurface.withValues(alpha: 0.5),
+          ),
           filled: true,
-          fillColor: Colors.grey.shade200,
+          // Dynamic fill color (White in Light, Dark Grey in Dark)
+          fillColor: theme.cardColor,
           contentPadding: const EdgeInsets.symmetric(vertical: 0),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
@@ -72,38 +85,44 @@ class _MessageScreenState extends State<MessageScreen> {
   // ----------------------------------------
   // MESSAGE LIST
   // ----------------------------------------
-  Widget _buildMessageList() {
+  Widget _buildMessageList(ThemeData theme, ColorScheme colors) {
     return ListView(
       children: [
         _buildMessageItem(
           context: context,
+          theme: theme,
+          colors: colors,
           name: "Dara Sok",
           message: "Yes, the book is still available!",
           time: "2m ago",
           unreadCount: 2,
-            avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg", // USE ANY IMAGE YOU WANT
+          avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
           isOnline: true,
         ),
-        
+
         // 2. KIMLY PRAK
         _buildMessageItem(
           context: context,
+          theme: theme,
+          colors: colors,
           name: "Kimly Prak",
           message: "Thank you so much for the book 🙏",
           time: "1h ago",
           unreadCount: 0,
-            avatarUrl: "https://i.ibb.co/bWVKkHh/profile2.jpg", // USE ANY IMAGE
+          avatarUrl: "https://i.ibb.co/bWVKkHh/profile2.jpg",
           isOnline: false,
         ),
 
         // 3. SOPHEA CHEA
         _buildMessageItem(
           context: context,
+          theme: theme,
+          colors: colors,
           name: "Sophea Chea",
           message: "Can we meet tomorrow at 2pm?",
           time: "3h ago",
           unreadCount: 1,
-          avatarUrl: "https://randomuser.me/api/portraits/men/55.jpg", // testing broken image
+          avatarUrl: "https://randomuser.me/api/portraits/men/55.jpg",
           isOnline: true,
         ),
       ],
@@ -115,6 +134,8 @@ class _MessageScreenState extends State<MessageScreen> {
   // ----------------------------------------
   Widget _buildMessageItem({
     required BuildContext context,
+    required ThemeData theme,
+    required ColorScheme colors,
     required String name,
     required String message,
     required String time,
@@ -123,17 +144,12 @@ class _MessageScreenState extends State<MessageScreen> {
     String? avatarUrl,
   }) {
     return InkWell(
-      // --------------------------------------------
-      // THIS IS THE NAVIGATION LOGIC
-      // --------------------------------------------
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatScreen(
-              name: name,
-              avatarUrl: avatarUrl ?? "",
-            ),
+            builder: (context) =>
+                ChatScreen(name: name, avatarUrl: avatarUrl ?? ""),
           ),
         );
       },
@@ -145,10 +161,16 @@ class _MessageScreenState extends State<MessageScreen> {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundImage:
-                      avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                  backgroundColor: colors.surface,
+                  backgroundImage: avatarUrl != null
+                      ? NetworkImage(avatarUrl)
+                      : null,
                   child: avatarUrl == null
-                      ? const Icon(Icons.image_not_supported, size: 28)
+                      ? Icon(
+                          Icons.image_not_supported,
+                          size: 28,
+                          color: colors.onSurface,
+                        )
                       : null,
                 ),
                 if (isOnline)
@@ -161,13 +183,17 @@ class _MessageScreenState extends State<MessageScreen> {
                       decoration: BoxDecoration(
                         color: Colors.green,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(
+                          color: theme
+                              .scaffoldBackgroundColor, // Match background for cutoff effect
+                          width: 2,
+                        ),
                       ),
                     ),
                   ),
               ],
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
 
             // Text Section
             Expanded(
@@ -177,14 +203,20 @@ class _MessageScreenState extends State<MessageScreen> {
                   Text(
                     name,
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: colors.onSurface, // Dynamic Name Color
+                    ),
                   ),
-                  SizedBox(height: 3),
+                  const SizedBox(height: 3),
                   Text(
                     message,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey.shade700),
+                    style: TextStyle(
+                      // Lighter text for message preview
+                      color: colors.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
                 ],
               ),
@@ -196,21 +228,28 @@ class _MessageScreenState extends State<MessageScreen> {
               children: [
                 Text(
                   time,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  style: TextStyle(
+                    color: colors.onSurface.withValues(alpha: 0.5),
+                    fontSize: 12,
+                  ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 if (unreadCount > 0)
                   Container(
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: Colors.amber, // Use dynamic Amber color
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Center(
                       child: Text(
                         unreadCount.toString(),
-                        style: TextStyle(color: Colors.white),
+                        style: const TextStyle(
+                          color:
+                              Colors.white, // Text inside badge is always white
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

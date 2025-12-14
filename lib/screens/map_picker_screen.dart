@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -21,7 +22,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   // Replace with your valid Google Places API Key
   final String _googleApiKey = "AIzaSyDFnazV9bdy9sHWHZyMW6Bx3fYakQ_-Ax4";
 
-  // Session token for billing optimization (Reduces cost significantly)
+  // Session token for billing optimization
   var _sessionToken = const Uuid().v4();
 
   // 2. Map State
@@ -40,14 +41,9 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   // --- API LOGIC ---
 
-  // Fetch Autocomplete Suggestions
   Future<List<PlacePrediction>> _getPlacePredictions(String query) async {
     if (query.isEmpty) return [];
 
-    // UPDATED URL:
-    // 1. components=country:kh  -> Restrict results to Cambodia
-    // 2. location=11.5564,104.9282 -> Bias towards Phnom Penh coordinates
-    // 3. radius=25000 -> Prioritize results within 25km of the city center
     final String url =
         "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$_googleApiKey&sessiontoken=$_sessionToken&components=country:kh&location=11.5564,104.9282&radius=25000";
 
@@ -64,7 +60,6 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     return [];
   }
 
-  // Fetch Lat/Lng for a selected Place ID
   Future<void> _getPlaceDetails(String placeId) async {
     final String url =
         "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_googleApiKey&sessiontoken=$_sessionToken";
@@ -79,9 +74,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         final lng = location['lng'];
 
         final newPos = LatLng(lat, lng);
-        _handleTap(newPos); // Update map
+        _handleTap(newPos);
 
-        // Regenerate session token after a selection is made (Google Requirement)
         setState(() {
           _sessionToken = const Uuid().v4();
         });
@@ -94,7 +88,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   void _handleTap(LatLng point) {
     setState(() {
       _selectedLocation = point;
-      FocusScope.of(context).unfocus(); // Close keyboard
+      FocusScope.of(context).unfocus();
     });
     _mapController?.animateCamera(CameraUpdate.newLatLng(point));
   }
@@ -109,26 +103,37 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ---------------- THEME DATA ----------------
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("assets/images/background.jpg"),
+              image: const AssetImage("assets/images/background.jpg"),
               fit: BoxFit.cover,
+              opacity: isDark ? 0.2 : 0,
             ),
           ),
         ),
-        title: const Text(
+        title: Text(
           "Pick Location",
-          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            // Use dynamic primary color
+            color: Colors.amber,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.amber),
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.amber),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -167,13 +172,13 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             right: 20,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.cardColor, // Dynamic Background
                 borderRadius: BorderRadius.circular(30),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
-                    offset: Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
@@ -183,18 +188,27 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   return TextField(
                     controller: controller,
                     focusNode: focusNode,
-                    cursorColor: Colors.black,
+                    style: TextStyle(
+                      color: colors.onSurface,
+                    ), // Typing text color
+                    cursorColor: Colors.amber,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                       hintText: "Search places in Phnom Penh...",
+                      hintStyle: TextStyle(
+                        color: colors.onSurface.withValues(alpha: 0.5),
+                      ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 14,
                       ),
-                      prefixIcon: const Icon(Icons.search, color: Colors.amber),
+                      prefixIcon: Icon(Icons.search, color: Colors.amber),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.grey),
+                        icon: Icon(
+                          Icons.clear,
+                          color: colors.onSurface.withValues(alpha: 0.5),
+                        ),
                         onPressed: () => controller.clear(),
                       ),
                     ),
@@ -204,54 +218,58 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   return await _getPlacePredictions(pattern);
                 },
                 emptyBuilder: (context) {
-                  return SizedBox(
-                    height: 50,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Row(
-                        spacing: 8,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.search_off_rounded,
-                            size: 20,
-                            color: Colors.grey,
+                  return Container(
+                    padding: const EdgeInsets.all(20.0),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 20,
+                          color: colors.onSurface.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          "No places found",
+                          style: TextStyle(
+                            color: colors.onSurface.withValues(alpha: 0.6),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "No places found",
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   );
                 },
                 itemBuilder: (context, prediction) {
                   return ListTile(
-                    leading: const Icon(Icons.location_on, color: Colors.amber),
-                    title: Text(prediction.description),
+                    tileColor: theme.cardColor, // Dynamic list background
+                    leading: Icon(Icons.location_on, color: Colors.amber),
+                    title: Text(
+                      prediction.description,
+                      style: TextStyle(color: colors.onSurface), // Dynamic text
+                    ),
                   );
                 },
                 onSelected: (prediction) {
                   _searchController.text = prediction.description;
                   _getPlaceDetails(prediction.placeId);
                 },
-                // Customizing the suggestion box
                 decorationBuilder: (context, child) {
                   return Material(
                     type: MaterialType.card,
                     elevation: 4,
+                    color: theme.cardColor, // Dropdown container color
                     borderRadius: BorderRadius.circular(15),
                     child: child,
                   );
                 },
-                offset: const Offset(0, 5), // Gap between field and list
+                offset: const Offset(0, 5),
               ),
             ),
           ),
@@ -263,9 +281,9 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             child: FloatingActionButton(
               heroTag: "layersBtn",
               mini: true,
-              backgroundColor: Colors.white,
-              onPressed: _showMapOptions,
-              child: const Icon(Icons.layers_outlined, color: Colors.black87),
+              backgroundColor: theme.cardColor, // Dynamic Background
+              onPressed: () => _showMapOptions(theme, colors),
+              child: Icon(Icons.layers_outlined, color: colors.onSurface),
             ),
           ),
 
@@ -276,8 +294,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             child: FloatingActionButton(
               heroTag: "gpsBtn",
               mini: true,
-              backgroundColor: Colors.white,
-              child: const Icon(Icons.my_location, color: Colors.amber),
+              backgroundColor: theme.cardColor, // Dynamic Background
+              child: Icon(Icons.my_location, color: Colors.amber),
               onPressed: () {
                 _mapController?.animateCamera(
                   CameraUpdate.newCameraPosition(
@@ -296,7 +314,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             child: ElevatedButton(
               onPressed: _confirmSelection,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
+                backgroundColor: Colors.amber, // Dynamic Amber
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -308,7 +326,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 "Confirm Location",
                 style: TextStyle(
                   fontSize: 18,
-                  color: Colors.white,
+                  color: Colors.white, // Text is always white on primary button
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -319,49 +337,63 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     );
   }
 
-  // --- BOTTOM SHEET (Unchanged Logic) ---
-  void _showMapOptions() {
+  // --- BOTTOM SHEET ---
+  void _showMapOptions(ThemeData theme, ColorScheme colors) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: theme.cardColor, // Dynamic Sheet Background
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Map Type",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colors.onSurface, // Dynamic Title
+                ),
               ),
               const SizedBox(height: 15),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMapTypeOption("Default", MapType.normal, Icons.map),
+                  _buildMapTypeOption(
+                    "Default",
+                    MapType.normal,
+                    Icons.map,
+                    colors,
+                  ),
                   _buildMapTypeOption(
                     "Satellite",
                     MapType.satellite,
                     Icons.satellite,
+                    colors,
                   ),
                   _buildMapTypeOption(
                     "Terrain",
                     MapType.terrain,
                     Icons.terrain,
+                    colors,
                   ),
                 ],
               ),
               const SizedBox(height: 20),
               const Divider(),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   "Traffic Details",
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: colors.onSurface,
+                  ),
                 ),
                 secondary: const Icon(Icons.traffic, color: Colors.amber),
                 value: _trafficEnabled,
@@ -381,7 +413,12 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     );
   }
 
-  Widget _buildMapTypeOption(String label, MapType type, IconData icon) {
+  Widget _buildMapTypeOption(
+    String label,
+    MapType type,
+    IconData icon,
+    ColorScheme colors,
+  ) {
     final bool isSelected = _currentMapType == type;
     return GestureDetector(
       onTap: () {
@@ -395,23 +432,27 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? Colors.amber : Colors.grey.shade300,
+                color: isSelected
+                    ? Colors.amber
+                    : colors.outline.withValues(alpha: 0.3),
                 width: 2,
               ),
               color: isSelected
                   ? Colors.amber.withValues(alpha: 0.1)
-                  : Colors.white,
+                  : Colors.transparent,
             ),
             child: Icon(
               icon,
-              color: isSelected ? Colors.amber : Colors.grey[600],
+              color: isSelected
+                  ? Colors.amber
+                  : colors.onSurface.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.amber : Colors.black87,
+              color: isSelected ? Colors.amber : colors.onSurface,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
             ),

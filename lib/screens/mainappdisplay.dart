@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:khan_share_mobile_app/config/appColors.dart';
 import 'package:khan_share_mobile_app/screens/createbooklist.dart';
 import 'package:khan_share_mobile_app/screens/homepage.dart';
 import 'package:khan_share_mobile_app/screens/mappage.dart';
@@ -16,7 +15,7 @@ class Mainappdisplay extends StatefulWidget {
 class _MainappdisplayState extends State<Mainappdisplay> {
   @override
   Widget build(BuildContext context) {
-    return BookShareShellScreen();
+    return const BookShareShellScreen();
   }
 }
 
@@ -34,56 +33,73 @@ class _BookShareShellScreenState extends State<BookShareShellScreen> {
   final List<Widget> _screens = const [
     HomepageScreen(),
     MapViewScreen(),
-    SizedBox(),
+    SizedBox(), // Placeholder for FAB
     MessageScreen(),
     ProfileScreen(),
   ];
 
   void _onNavTapped(int index) {
+    // Prevent navigating to the empty middle slot (FAB location)
+    if (index == 2) return;
+
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.amber,
-      unselectedItemColor: Colors.grey,
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-      selectedLabelStyle: const TextStyle(fontSize: 10),
-      unselectedLabelStyle: const TextStyle(fontSize: 10),
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.location_on_outlined),
-          label: 'Map',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.add, color: Colors.transparent),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.chat_bubble_outline),
-          label: 'Chat',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          label: 'Profile',
-        ),
-      ],
-      currentIndex: _selectedIndex,
-      onTap: _onNavTapped,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Access the current theme data
+    final theme = Theme.of(context);
     return Scaffold(
+      // Ensure the body background matches the theme
+      backgroundColor: theme.scaffoldBackgroundColor,
+
       body: _screens[_selectedIndex],
 
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        // Use cardColor so it switches between White (Light) and Dark Grey (Dark)
+        backgroundColor: theme.cardColor,
+        selectedItemColor: Colors.amber, // Amber
+        unselectedItemColor: Colors.grey,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        selectedLabelStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+        unselectedLabelStyle: const TextStyle(fontSize: 10),
+        currentIndex: _selectedIndex,
+        onTap: _onNavTapped,
+        elevation: 10, // Adds a slight shadow for depth
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on_outlined),
+            activeIcon: Icon(Icons.location_on),
+            label: 'Map',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add, color: Colors.transparent),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline),
+            activeIcon: Icon(Icons.chat_bubble),
+            label: 'Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
 
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(top: 25),
@@ -91,11 +107,13 @@ class _BookShareShellScreenState extends State<BookShareShellScreen> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Createbooklist()),
+              MaterialPageRoute(builder: (context) => const Createbooklist()),
             );
           },
-          backgroundColor: AppColor.primary,
+          // Use dynamic primary color (Amber)
+          backgroundColor: Colors.amber,
           shape: const CircleBorder(),
+          elevation: 4,
           child: const Icon(Icons.add, color: Colors.white, size: 30),
         ),
       ),

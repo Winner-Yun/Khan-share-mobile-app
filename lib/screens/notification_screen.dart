@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:khan_share_mobile_app/config/appColors.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -9,7 +8,7 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  // Dummy Data - Removed "Chat" items
+  // Dummy Data
   List<Map<String, dynamic>> notifications = [
     {
       "id": 2,
@@ -51,10 +50,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         n['isRead'] = true;
       }
     });
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Color.fromARGB(255, 255, 217, 103),
-        content: Text(
+      SnackBar(
+        backgroundColor: Colors.amber,
+        content: const Text(
           "All notifications marked as read",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
@@ -64,21 +64,31 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ---------------- THEME DATA ----------------
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor, // Dynamic Background
       body: Column(
         children: [
-          _buildHeader(context),
+          _buildHeader(context, theme, colors, isDark),
           Expanded(
             child: notifications.isEmpty
-                ? _buildEmptyState()
+                ? _buildEmptyState(colors)
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: notifications.length,
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: 12),
                     itemBuilder: (context, index) {
-                      return _buildNotificationItem(notifications[index]);
+                      return _buildNotificationItem(
+                        notifications[index],
+                        theme,
+                        colors,
+                        isDark,
+                      );
                     },
                   ),
           ),
@@ -88,23 +98,31 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   // --- HEADER ---
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colors,
+    bool isDark,
+  ) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
+        color: theme.appBarTheme.backgroundColor,
         image: DecorationImage(
-          image: AssetImage('assets/images/background.jpg'),
+          image: const AssetImage('assets/images/background.jpg'),
           fit: BoxFit.cover,
+          // Darken the image in dark mode for better text contrast
+          opacity: isDark ? 0.3 : 1.0,
         ),
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CircleAvatar(
-                backgroundColor: Colors.amber,
+                backgroundColor: Colors.amber, // Dynamic Amber
                 radius: 20,
                 child: IconButton(
                   icon: const Icon(
@@ -115,17 +133,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
-              const Text(
+              Text(
                 "Notifications",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  // Using white to contrast with background image
-                  color: AppColor.textAppbar,
+                  // Use dynamic appbar text color
+                  color: theme.appBarTheme.foregroundColor,
                 ),
               ),
               CircleAvatar(
-                backgroundColor: Colors.amber,
+                backgroundColor: Colors.amber, // Dynamic Amber
                 radius: 20,
                 child: IconButton(
                   icon: const Icon(
@@ -145,8 +163,24 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   // --- NOTIFICATION ITEM ---
-  Widget _buildNotificationItem(Map<String, dynamic> data) {
+  Widget _buildNotificationItem(
+    Map<String, dynamic> data,
+    ThemeData theme,
+    ColorScheme colors,
+    bool isDark,
+  ) {
     bool isRead = data['isRead'];
+
+    // Define colors for Read/Unread states based on Theme
+    final readBg = theme.cardColor;
+    final unreadBg = isDark
+        ? Colors.amber.withValues(alpha: 0.1) // Subtle Amber tint for dark mode
+        : const Color(0xFFFFFDE7); // Yellowish tint for light mode
+
+    final readBorder = isDark ? Colors.transparent : Colors.grey.shade200;
+    final unreadBorder = isDark
+        ? Colors.amber.withValues(alpha: 0.3)
+        : const Color(0xFFFFF59D);
 
     return InkWell(
       onTap: () {
@@ -157,16 +191,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isRead ? Colors.white : const Color(0xFFFFFDE7),
+          color: isRead ? readBg : unreadBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isRead ? Colors.grey.shade200 : const Color(0xFFFFF59D),
-          ),
+          border: Border.all(color: isRead ? readBorder : unreadBorder),
           boxShadow: isRead
               ? []
               : [
                   BoxShadow(
-                    color: Colors.amber.withValues(alpha: 0.1),
+                    color: colors.primary.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -175,7 +207,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildIcon(data['type']),
+            _buildIcon(data['type'], colors, isDark),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -192,7 +224,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             fontWeight: isRead
                                 ? FontWeight.w600
                                 : FontWeight.bold,
-                            color: Colors.black87,
+                            color: colors.onSurface, // Dynamic Text Color
                           ),
                         ),
                       ),
@@ -200,7 +232,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         data['time'],
                         style: TextStyle(
                           fontSize: 12,
-                          color: isRead ? Colors.grey : Colors.amber[800],
+                          color: isRead
+                              ? colors.onSurface.withValues(alpha: 0.5)
+                              : colors.primary,
                           fontWeight: isRead
                               ? FontWeight.normal
                               : FontWeight.bold,
@@ -215,7 +249,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[700],
+                      color: colors.onSurface.withValues(
+                        alpha: 0.7,
+                      ), // Slightly dimmer body text
                       height: 1.4,
                     ),
                   ),
@@ -227,8 +263,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 margin: const EdgeInsets.only(left: 8, top: 5),
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.amber,
+                decoration: BoxDecoration(
+                  color: colors.primary,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -238,27 +274,28 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  // --- ICON BUILDER (Removed Chat case) ---
-  Widget _buildIcon(String type) {
+  // --- ICON BUILDER ---
+  Widget _buildIcon(String type, ColorScheme colors, bool isDark) {
     IconData icon;
     Color color;
     Color bg;
 
+    // Use withValues alpha:  instead of .shade50 to look good on Dark Mode
     switch (type) {
       case 'success':
         icon = Icons.check_circle_outline;
         color = Colors.green;
-        bg = Colors.green.shade50;
+        bg = Colors.green.withValues(alpha: isDark ? 0.2 : 0.1);
         break;
       case 'alert':
         icon = Icons.notifications_active_outlined;
         color = Colors.orange;
-        bg = Colors.orange.shade50;
+        bg = Colors.orange.withValues(alpha: isDark ? 0.2 : 0.1);
         break;
       default:
         icon = Icons.info_outline;
-        color = Colors.amber[800]!;
-        bg = Colors.yellow.shade50;
+        color = colors.primary;
+        bg = colors.primary.withValues(alpha: isDark ? 0.2 : 0.1);
     }
 
     return Container(
@@ -269,7 +306,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   // --- EMPTY STATE ---
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ColorScheme colors) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -277,17 +314,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Icon(
             Icons.notifications_off_outlined,
             size: 80,
-            color: Colors.amber[100],
+            color: colors.onSurface.withValues(
+              alpha: 0.2,
+            ), // Dynamic empty icon
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             "No Notifications Yet",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colors.onSurface,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             "We'll let you know when updates arrive.",
-            style: TextStyle(color: Colors.grey[500]),
+            style: TextStyle(color: colors.onSurface.withValues(alpha: 0.5)),
           ),
         ],
       ),

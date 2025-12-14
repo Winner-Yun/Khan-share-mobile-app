@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:khan_share_mobile_app/config/appColors.dart';
 
 class ChatScreen extends StatefulWidget {
   final String name;
@@ -46,35 +45,46 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Color myMessageColor = AppColor.exchange;
-    Color otherMessageColor = Colors.white;
-    Color backgroundColor = Color(0xFFF6F6F6);
+    // ---------------- THEME DATA ----------------
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Dynamic Colors based on Theme
+    final Color myMessageColor = Colors.amber; // Amber
+    final Color myMessageText = Colors.black; // Text on Amber
+
+    final Color otherMessageColor = theme.cardColor; // White or Dark Grey
+    final Color otherMessageText = colors.onSurface; // Black or White
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0.5,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColor.exchange),
+          icon: Icon(Icons.arrow_back, color: Colors.amber),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           children: [
-            CircleAvatar(backgroundImage: NetworkImage(widget.avatarUrl)),
-            SizedBox(width: 10),
+            CircleAvatar(
+              backgroundImage: NetworkImage(widget.avatarUrl),
+              backgroundColor: colors.surface,
+            ),
+            const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   widget.name,
                   style: TextStyle(
-                    color: Colors.black,
+                    color: Colors.amber,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
+                const Text(
                   "Online",
                   style: TextStyle(color: Colors.green, fontSize: 12),
                 ),
@@ -84,7 +94,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.more_vert, color: AppColor.exchange),
+            icon: Icon(Icons.more_vert, color: Colors.amber),
             onPressed: () {},
           ),
         ],
@@ -115,14 +125,18 @@ class _ChatScreenState extends State<ChatScreen> {
                     decoration: BoxDecoration(
                       color: isMe ? myMessageColor : otherMessageColor,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                        bottomLeft: isMe ? Radius.circular(12) : Radius.zero,
-                        bottomRight: isMe ? Radius.zero : Radius.circular(12),
+                        topLeft: const Radius.circular(12),
+                        topRight: const Radius.circular(12),
+                        bottomLeft: isMe
+                            ? const Radius.circular(12)
+                            : Radius.zero,
+                        bottomRight: isMe
+                            ? Radius.zero
+                            : const Radius.circular(12),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.1),
+                          color: Colors.black.withValues(alpha: 0.05),
                           spreadRadius: 1,
                           blurRadius: 2,
                         ),
@@ -135,15 +149,17 @@ class _ChatScreenState extends State<ChatScreen> {
                         Text(
                           msg['message'],
                           style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black87,
+                            color: isMe ? myMessageText : otherMessageText,
                             fontSize: 15,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           msg['time'],
                           style: TextStyle(
-                            color: isMe ? Colors.white70 : Colors.grey,
+                            // Slightly dim the time color
+                            color: (isMe ? myMessageText : otherMessageText)
+                                .withValues(alpha: 0.6),
                             fontSize: 10,
                           ),
                         ),
@@ -161,21 +177,36 @@ class _ChatScreenState extends State<ChatScreen> {
           SafeArea(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              color: Colors.white,
+              decoration: BoxDecoration(
+                color: theme.cardColor, // Input bar background
+                border: Border(
+                  top: BorderSide(color: colors.outline.withValues(alpha: 0.1)),
+                ),
+              ),
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.image_outlined, color: Colors.grey),
+                    icon: Icon(
+                      Icons.image_outlined,
+                      color: colors.onSurface.withValues(alpha: 0.5),
+                    ),
                     onPressed: () {},
                   ),
                   Expanded(
                     child: TextField(
                       controller: _messageController,
+                      style: TextStyle(color: colors.onSurface),
                       decoration: InputDecoration(
                         hintText: "Type a message...",
+                        hintStyle: TextStyle(
+                          color: colors.onSurface.withValues(alpha: 0.5),
+                        ),
                         filled: true,
-                        fillColor: Color(0xFFF3F4F6),
-                        contentPadding: EdgeInsets.symmetric(
+                        // Slightly differen shade for the input box itself
+                        fillColor: isDark
+                            ? Colors.grey.withValues(alpha: 0.1)
+                            : const Color(0xFFF3F4F6),
+                        contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 10,
                         ),
@@ -186,12 +217,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   CircleAvatar(
-                    backgroundColor: AppColor.exchange,
+                    backgroundColor: Colors.amber,
                     radius: 22,
                     child: IconButton(
-                      icon: Icon(Icons.send, color: Colors.white, size: 20),
+                      icon: const Icon(
+                        Icons.send,
+                        color: Colors.black,
+                        size: 20,
+                      ),
                       onPressed: () {
                         if (_messageController.text.isNotEmpty) {
                           setState(() {
@@ -202,10 +237,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             });
                             _messageController.clear();
                           });
-                          Future.delayed(Duration(milliseconds: 100), () {
+                          Future.delayed(const Duration(milliseconds: 100), () {
                             _scrollController.animateTo(
                               _scrollController.position.maxScrollExtent,
-                              duration: Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: 300),
                               curve: Curves.easeOut,
                             );
                           });

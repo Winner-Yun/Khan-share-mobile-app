@@ -122,44 +122,40 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 
   // --- IMAGE PROCESSING FOR MARKERS ---
-  // UPDATED: Now accepts a borderColor
   Future<BitmapDescriptor> _createCustomMarkerBitmap(
     String url,
     Color borderColor,
   ) async {
     try {
-      // 1. Download image
       final ByteData data = await NetworkAssetBundle(Uri.parse(url)).load("");
       final Uint8List bytes = data.buffer.asUint8List();
 
-      // 2. Decode image to get dimensions
       final ui.Codec codec = await ui.instantiateImageCodec(
         bytes,
-        targetWidth: 150, // Resize to keep marker size reasonable
+        targetWidth: 150,
         targetHeight: 150,
       );
       final ui.FrameInfo fi = await codec.getNextFrame();
       final ui.Image image = fi.image;
 
-      // 3. Create Canvas to draw Circle + Border + Image
-      final int size = 120; // Pixel size of the marker
+      final int size = 120;
       final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
       final Canvas canvas = Canvas(pictureRecorder);
       final Paint paint = Paint()..isAntiAlias = true;
       final double radius = size / 2;
 
-      // Draw White Background Circle
+      // Draw White Background Circle (Keep white so markers pop on map)
       paint.color = Colors.white;
       paint.style = PaintingStyle.fill;
       canvas.drawCircle(Offset(radius, radius), radius, paint);
 
-      // Draw Colored Border Outline (Dynamic Color)
+      // Draw Colored Border Outline
       paint.color = borderColor;
       paint.style = PaintingStyle.stroke;
-      paint.strokeWidth = 6; // Made slightly thicker for visibility
+      paint.strokeWidth = 6;
       canvas.drawCircle(Offset(radius, radius), radius - 3, paint);
 
-      // Clip Path for the Image (Inner Circle)
+      // Clip Path for the Image
       paint.style = PaintingStyle.fill;
       Path clipPath = Path()
         ..addOval(
@@ -167,7 +163,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
         );
       canvas.clipPath(clipPath);
 
-      // Draw the Image centered
       double imageWidth = image.width.toDouble();
       double imageHeight = image.height.toDouble();
 
@@ -189,7 +184,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
         Paint(),
       );
 
-      // 4. Convert Canvas to BitmapDescriptor
       final ui.Image markerAsImage = await pictureRecorder
           .endRecording()
           .toImage(size, size);
@@ -202,7 +196,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
       return BitmapDescriptor.fromBytes(uint8List);
     } catch (e) {
       debugPrint("Error loading marker image: $e");
-      // Fallback with hue based on color approximation could be added here
       return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
     }
   }
@@ -212,10 +205,8 @@ class _MapViewScreenState extends State<MapViewScreen> {
     Set<Marker> newMarkers = {};
 
     for (var book in _books) {
-      // Get color based on book action
       Color bookColor = _getActionColor(book['action']);
 
-      // Pass color to marker generator
       BitmapDescriptor icon = await _createCustomMarkerBitmap(
         book['image'],
         bookColor,
@@ -250,52 +241,66 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 
   // --- MAP OPTIONS MODAL ---
-  void _showMapOptions() {
+  void _showMapOptions(ThemeData theme, ColorScheme colors) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: theme.cardColor, // Dynamic Background
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Map Type",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colors.onSurface,
+                ),
               ),
               const SizedBox(height: 15),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMapTypeOption("Default", MapType.normal, Icons.map),
+                  _buildMapTypeOption(
+                    "Default",
+                    MapType.normal,
+                    Icons.map,
+                    colors,
+                  ),
                   _buildMapTypeOption(
                     "Satellite",
                     MapType.satellite,
                     Icons.satellite,
+                    colors,
                   ),
                   _buildMapTypeOption(
                     "Terrain",
                     MapType.terrain,
                     Icons.terrain,
+                    colors,
                   ),
                 ],
               ),
               const SizedBox(height: 20),
               const Divider(),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   "Traffic Details",
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: colors.onSurface,
+                  ),
                 ),
                 secondary: const Icon(Icons.traffic, color: Colors.orange),
                 value: _trafficEnabled,
-                activeThumbColor: Colors.teal,
+                activeThumbColor: Colors.amber,
                 onChanged: (bool value) {
                   setState(() {
                     _trafficEnabled = value;
@@ -311,7 +316,12 @@ class _MapViewScreenState extends State<MapViewScreen> {
     );
   }
 
-  Widget _buildMapTypeOption(String label, MapType type, IconData icon) {
+  Widget _buildMapTypeOption(
+    String label,
+    MapType type,
+    IconData icon,
+    ColorScheme colors,
+  ) {
     final bool isSelected = _currentMapType == type;
     return GestureDetector(
       onTap: () {
@@ -327,23 +337,27 @@ class _MapViewScreenState extends State<MapViewScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? Colors.teal : Colors.grey.shade300,
+                color: isSelected
+                    ? Colors.amber
+                    : colors.outline.withValues(alpha: 0.3),
                 width: 2,
               ),
               color: isSelected
-                  ? Colors.teal.withValues(alpha: 0.1)
-                  : Colors.white,
+                  ? Colors.amber.withValues(alpha: 0.1)
+                  : Colors.transparent,
             ),
             child: Icon(
               icon,
-              color: isSelected ? Colors.teal : Colors.grey[600],
+              color: isSelected
+                  ? Colors.amber
+                  : colors.onSurface.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.teal : Colors.black87,
+              color: isSelected ? Colors.amber : colors.onSurface,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
             ),
@@ -354,8 +368,11 @@ class _MapViewScreenState extends State<MapViewScreen> {
   }
 
   // --- CUSTOM POPUP WIDGET ---
-  Widget _buildCustomPopup(Map<String, dynamic> book) {
-    // Get Dynamic Color
+  Widget _buildCustomPopup(
+    Map<String, dynamic> book,
+    ThemeData theme,
+    ColorScheme colors,
+  ) {
     Color actionColor = _getActionColor(book['action']);
 
     return Positioned(
@@ -366,16 +383,15 @@ class _MapViewScreenState extends State<MapViewScreen> {
         color: Colors.transparent,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor, // Dynamic Background
             borderRadius: BorderRadius.circular(15),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 10,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
-            // Optional: Add a subtle border matching the action
             border: Border.all(
               color: actionColor.withValues(alpha: 0.3),
               width: 1,
@@ -412,15 +428,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
                             book['title'],
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
+                              color: colors.onSurface, // Dynamic Text
                             ),
                           ),
                           Text(
                             book['distance'],
                             style: TextStyle(
-                              color: actionColor, // Use dynamic color
+                              color: actionColor,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -433,7 +450,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: actionColor, // Use dynamic color
+                                    color: actionColor,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -449,15 +466,13 @@ class _MapViewScreenState extends State<MapViewScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: actionColor.withValues(
-                                      alpha: 0.1,
-                                    ), // Dynamic shade
+                                    color: actionColor.withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.share,
                                     size: 16,
-                                    color: actionColor, // Dynamic color
+                                    color: actionColor,
                                   ),
                                 ),
                               ),
@@ -473,7 +488,11 @@ class _MapViewScreenState extends State<MapViewScreen> {
                 top: 0,
                 right: 0,
                 child: IconButton(
-                  icon: const Icon(Icons.close, size: 16, color: Colors.grey),
+                  icon: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: colors.onSurface.withValues(alpha: 0.5),
+                  ),
                   onPressed: () {
                     setState(() {
                       _selectedBook = null;
@@ -490,6 +509,10 @@ class _MapViewScreenState extends State<MapViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ---------------- THEME DATA ----------------
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -500,8 +523,8 @@ class _MapViewScreenState extends State<MapViewScreen> {
                 target: _initialPosition,
                 zoom: 14.0,
               ),
-              mapType: _currentMapType, // Use state
-              trafficEnabled: _trafficEnabled, // Use state
+              mapType: _currentMapType,
+              trafficEnabled: _trafficEnabled,
               markers: _markers,
               onMapCreated: (GoogleMapController controller) {
                 _mapController = controller;
@@ -516,41 +539,47 @@ class _MapViewScreenState extends State<MapViewScreen> {
               zoomControlsEnabled: false,
               mapToolbarEnabled: false,
               compassEnabled: true,
-              myLocationEnabled: true, // Try to show blue dot
+              myLocationEnabled: true,
               myLocationButtonEnabled: false,
             ),
           ),
 
           // 2. CUSTOM POPUP
-          if (_selectedBook != null) _buildCustomPopup(_selectedBook!),
+          if (_selectedBook != null)
+            _buildCustomPopup(_selectedBook!, theme, colors),
 
           // 3. HEADER
-          Positioned(top: 0, left: 0, right: 0, child: _buildHeader(context)),
-
-          // 4. MAP LAYERS BUTTON (New)
           Positioned(
-            top: 200, // Positioned below search bar
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildHeader(context, theme, colors),
+          ),
+
+          // 4. MAP LAYERS BUTTON
+          Positioned(
+            top: 200,
             right: 16,
             child: FloatingActionButton(
               heroTag: "layersBtn",
               mini: true,
-              backgroundColor: Colors.white,
+              backgroundColor: theme.cardColor, // Dynamic Background
               elevation: 4,
-              onPressed: _showMapOptions,
-              child: const Icon(Icons.layers_outlined, color: Colors.black87),
+              onPressed: () => _showMapOptions(theme, colors),
+              child: Icon(Icons.layers_outlined, color: colors.onSurface),
             ),
           ),
 
           // 5. FIND ME BUTTON
           Positioned(
-            top: 145, // Moved down slightly
+            top: 145,
             right: 16,
             child: FloatingActionButton(
               heroTag: "gpsBtn",
               mini: true,
-              backgroundColor: Colors.white,
+              backgroundColor: theme.cardColor, // Dynamic Background
               elevation: 4,
-              child: const Icon(Icons.my_location, color: Colors.teal),
+              child: Icon(Icons.my_location, color: Colors.amber),
               onPressed: () {
                 _mapController?.animateCamera(
                   CameraUpdate.newCameraPosition(
@@ -568,15 +597,16 @@ class _MapViewScreenState extends State<MapViewScreen> {
             maxChildSize: 0.9,
             builder: (BuildContext context, ScrollController scrollController) {
               return Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color:
+                      theme.scaffoldBackgroundColor, // Dynamic Sheet Background
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black26,
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 10,
                       spreadRadius: 2,
                     ),
@@ -589,7 +619,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
                       width: 50,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: colors.onSurface.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -602,17 +632,18 @@ class _MapViewScreenState extends State<MapViewScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             "Books Near You",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: colors.onSurface, // Dynamic Text
                             ),
                           ),
                           Text(
                             "${_books.length} found",
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: colors.onSurface.withValues(alpha: 0.6),
                               fontSize: 12,
                             ),
                           ),
@@ -635,6 +666,8 @@ class _MapViewScreenState extends State<MapViewScreen> {
                             distance: b["distance"],
                             action: b["action"],
                             imageUrl: b["image"],
+                            theme: theme,
+                            colors: colors,
                             onTap: () {
                               _navigateToDetail(b);
                             },
@@ -652,20 +685,24 @@ class _MapViewScreenState extends State<MapViewScreen> {
     );
   }
 
-  // ------------------ HEADER (Unchanged) ------------------
-  Widget _buildHeader(BuildContext context) {
+  // ------------------ HEADER ------------------
+  Widget _buildHeader(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colors,
+  ) {
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor, // Dynamic Background
           borderRadius: BorderRadius.circular(30),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -673,19 +710,21 @@ class _MapViewScreenState extends State<MapViewScreen> {
           children: [
             Expanded(
               child: TextField(
-                style: const TextStyle(color: Colors.black),
-                cursorColor: Colors.teal,
+                style: TextStyle(color: colors.onSurface), // Dynamic Input Text
+                cursorColor: Colors.amber,
                 controller: _searchController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: "Search Book Title, author...",
-                  hintStyle: TextStyle(color: Colors.black54),
+                  hintStyle: TextStyle(
+                    color: colors.onSurface.withValues(alpha: 0.5),
+                  ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                 ),
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.search, color: Colors.teal),
+              icon: Icon(Icons.search, color: Colors.amber),
               onPressed: () {},
             ),
           ],
@@ -694,7 +733,7 @@ class _MapViewScreenState extends State<MapViewScreen> {
     );
   }
 
-  // ------------------ BOOK CARD (UPDATED) ------------------
+  // ------------------ BOOK CARD ------------------
   Widget _buildBookCard({
     required String title,
     required String author,
@@ -702,8 +741,9 @@ class _MapViewScreenState extends State<MapViewScreen> {
     required String action,
     required String imageUrl,
     required VoidCallback onTap,
+    required ThemeData theme,
+    required ColorScheme colors,
   }) {
-    // Determine Color based on action
     Color actionColor = _getActionColor(action);
 
     return GestureDetector(
@@ -712,13 +752,13 @@ class _MapViewScreenState extends State<MapViewScreen> {
         margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor, // Dynamic Card Background
           borderRadius: BorderRadius.circular(14),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 5,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -742,24 +782,34 @@ class _MapViewScreenState extends State<MapViewScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
+                      color: colors.onSurface, // Dynamic Title
                     ),
                   ),
                   Text(
                     author,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colors.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
                         size: 14,
-                        color: Colors.grey,
+                        color: colors.onSurface.withValues(alpha: 0.5),
                       ),
-                      Text(distance, style: const TextStyle(fontSize: 12)),
+                      Text(
+                        distance,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
                     ],
                   ),
                 ],

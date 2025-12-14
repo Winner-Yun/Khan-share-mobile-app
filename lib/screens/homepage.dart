@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:khan_share_mobile_app/config/appColors.dart';
 import 'package:khan_share_mobile_app/screens/notification_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -33,7 +32,7 @@ class _BookShareScreenState extends State<BookShareScreen> {
 
   final List<String> _tabs = ['All Books', 'Donate', 'Exchange', 'Borrow'];
 
-  // 2. Data Source (Moved here to filter it)
+  // 2. Data Source
   final List<Map<String, dynamic>> _allBooks = [
     {
       'title': 'Pride and Prejudice',
@@ -92,9 +91,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
 
         final title = book['title'].toLowerCase();
         final author = book['author'].toLowerCase();
-        final category = book['category'].toString().toLowerCase(); // <-- added
+        final category = book['category'].toString().toLowerCase();
 
-        // NOW SEARCHES TITLE + AUTHOR + CATEGORY
         matchesSearch =
             title.contains(query) ||
             author.contains(query) ||
@@ -113,20 +111,31 @@ class _BookShareScreenState extends State<BookShareScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Access Theme Data
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColor.background,
+      backgroundColor: theme.scaffoldBackgroundColor, // Dynamic background
       body: Column(
         children: <Widget>[
-          _buildHeaderAndSearch(context),
-          Padding(padding: const EdgeInsets.all(10.0), child: _buildTabBar()),
-          Expanded(child: _buildBookList()),
+          _buildHeaderAndSearch(context, theme, colors),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: _buildTabBar(theme, colors),
+          ),
+          Expanded(child: _buildBookList(theme, colors)),
         ],
       ),
     );
   }
 
   // ---------------- HEADER + SEARCH ----------------
-  Widget _buildHeaderAndSearch(BuildContext context) {
+  Widget _buildHeaderAndSearch(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colors,
+  ) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -154,18 +163,16 @@ class _BookShareScreenState extends State<BookShareScreen> {
                         'assets/icons/logokhanshare2.png',
                         width: 20,
                         fit: BoxFit.cover,
-                        errorBuilder: (c, o, s) => const Icon(
-                          Icons.book,
-                          color: Colors.amber,
-                          size: 20,
-                        ),
+                        errorBuilder: (c, o, s) =>
+                            Icon(Icons.book, color: Colors.amber, size: 20),
                       ),
-                      const Text(
+                      Text(
                         "Khan Share",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppColor.textAppbar,
+                          // Use theme's appbar foreground (usually amber/gold in your theme)
+                          color: const Color.fromARGB(255, 189, 142, 0),
                         ),
                       ),
                     ],
@@ -186,12 +193,12 @@ class _BookShareScreenState extends State<BookShareScreen> {
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                            color: Colors.amber,
+                            color: Colors.amber, // Dynamic primary color
                             borderRadius: BorderRadius.circular(100),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.notifications,
-                            color: AppColor.tabUnselected,
+                            color: Colors.white, // Contrast icon color
                             size: 18,
                           ),
                         ),
@@ -204,20 +211,20 @@ class _BookShareScreenState extends State<BookShareScreen> {
               const SizedBox(height: 8),
 
               // Location
-              const Row(
+              Row(
                 children: [
                   Icon(
                     Icons.location_on_outlined,
                     size: 18,
-                    color: AppColor.textAppbar,
+                    color: const Color.fromARGB(255, 189, 142, 0),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     "Phnom Penh",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: AppColor.textAppbar,
+                      color: const Color.fromARGB(255, 189, 142, 0),
                     ),
                   ),
                 ],
@@ -228,31 +235,36 @@ class _BookShareScreenState extends State<BookShareScreen> {
               // Search Bar
               TextField(
                 controller: _searchController,
-                // --- ADDED: Update state on change ---
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
                   });
                 },
-                cursorColor: Colors.black,
-                decoration: const InputDecoration(
-                  fillColor: AppColor.background,
+                style: TextStyle(color: colors.onSurface), // Typing text color
+                cursorColor: Colors.amber,
+                decoration: InputDecoration(
+                  fillColor: theme.cardColor, // Dynamic input background
                   filled: true,
-                  enabledBorder: OutlineInputBorder(
+                  enabledBorder: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                     borderSide: BorderSide(width: 1, color: Colors.transparent),
                   ),
-                  focusedBorder: OutlineInputBorder(
+                  focusedBorder: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                     borderSide: BorderSide(width: 1, color: Colors.transparent),
                   ),
-                  prefixIcon: Icon(Icons.search, color: AppColor.iconSecondary),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: colors.onSurface.withValues(alpha: 0.5),
+                  ),
                   hintText: 'Search books, authors, categories...',
-                  hintStyle: TextStyle(color: AppColor.textSecondary),
+                  hintStyle: TextStyle(
+                    color: colors.onSurface.withValues(alpha: 0.5),
+                  ),
                   border: InputBorder.none,
                   suffixIcon: Icon(
                     Icons.filter_list,
-                    color: AppColor.iconSecondary,
+                    color: colors.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -264,29 +276,30 @@ class _BookShareScreenState extends State<BookShareScreen> {
   }
 
   // ---------------- TAB BAR ----------------
-  Widget _buildTabBar() {
+  Widget _buildTabBar(ThemeData theme, ColorScheme colors) {
     return SizedBox(
       height: 50,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _tabs.length,
         itemBuilder: (context, index) {
-          // --- UPDATED: Check selected index ---
           final isSelected = index == _selectedTabIndex;
+
+          // Determine unselected background color based on theme brightness
+          final unselectedBg = theme.brightness == Brightness.dark
+              ? Colors.grey[800]
+              : const Color.fromARGB(255, 215, 215, 215);
 
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
             child: TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: isSelected
-                    ? AppColor.primary
-                    : const Color.fromARGB(255, 215, 215, 215),
+                backgroundColor: isSelected ? Colors.amber : unselectedBg,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
               ),
-              // --- UPDATED: Set state on tap ---
               onPressed: () {
                 setState(() {
                   _selectedTabIndex = index;
@@ -295,7 +308,11 @@ class _BookShareScreenState extends State<BookShareScreen> {
               child: Text(
                 _tabs[index],
                 style: TextStyle(
-                  color: isSelected ? Colors.white : AppColor.textPrimary,
+                  color: isSelected
+                      ? (theme.brightness == Brightness.dark
+                            ? Colors.black
+                            : Colors.white)
+                      : colors.onSurface,
                   fontWeight: FontWeight.w400,
                   fontSize: 14,
                 ),
@@ -308,17 +325,24 @@ class _BookShareScreenState extends State<BookShareScreen> {
   }
 
   // ---------------- BOOK LIST ----------------
-  Widget _buildBookList() {
-    final displayBooks = _filteredBooks; // Use the filtered list
+  Widget _buildBookList(ThemeData theme, ColorScheme colors) {
+    final displayBooks = _filteredBooks;
 
     if (displayBooks.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.search_off, size: 50, color: Colors.grey),
+            Icon(
+              Icons.search_off,
+              size: 50,
+              color: colors.onSurface.withValues(alpha: 0.4),
+            ),
             const SizedBox(height: 10),
-            Text("No books found", style: TextStyle(color: Colors.grey[600])),
+            Text(
+              "No books found",
+              style: TextStyle(color: colors.onSurface.withValues(alpha: 0.6)),
+            ),
           ],
         ),
       );
@@ -331,6 +355,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
         final b = displayBooks[index];
 
         return _buildBookListItem(
+          theme: theme,
+          colors: colors,
           title: b['title'],
           author: b['author'],
           action: b['action'],
@@ -348,6 +374,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
 
   // ---------------- BOOK LIST ITEM ----------------
   Widget _buildBookListItem({
+    required ThemeData theme,
+    required ColorScheme colors,
     required String title,
     required String author,
     required String action,
@@ -361,30 +389,37 @@ class _BookShareScreenState extends State<BookShareScreen> {
   }) {
     Color actionColor;
     IconData actionIcon;
+    final isDark = theme.brightness == Brightness.dark;
 
+    // Use brighter colors in dark mode for visibility
     switch (action) {
       case 'Donation':
-        actionColor = AppColor.donate;
+        actionColor = Colors.green;
         actionIcon = Icons.volunteer_activism;
         break;
       case 'Exchange':
-        actionColor = AppColor.exchange;
+        actionColor = isDark ? Colors.orangeAccent : Colors.orange;
         actionIcon = Icons.compare_arrows;
         break;
       default:
-        actionColor = AppColor.borrow;
+        actionColor = const Color(0xFF6B45A2); // Purple
         actionIcon = Icons.bookmark_add;
     }
+
+    // Text color specifically for the action tag (always white on light mode, black on accent in dark mode?)
+    // Actually, simple white usually works on solid colors, but let's be safe.
+    final actionTextColor = Colors.white;
+    final actionIconColor = Colors.white;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
-        color: AppColor.cardBackground,
+        color: theme.cardColor, // Dynamic Card Background
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: InkWell(
           onTap: () {
-            // Add tap logic here if needed
+            // Add tap logic here
           },
           borderRadius: BorderRadius.circular(10),
           child: Row(
@@ -425,13 +460,14 @@ class _BookShareScreenState extends State<BookShareScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(actionIcon, size: 14, color: Colors.white),
+                          Icon(actionIcon, size: 14, color: actionIconColor),
                           const SizedBox(width: 4),
                           Text(
                             action,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: actionTextColor,
                               fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -454,8 +490,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
                         width: 200,
                         child: Text(
                           title,
-                          style: const TextStyle(
-                            color: AppColor.textPrimary,
+                          style: TextStyle(
+                            color: colors.onSurface, // Dynamic Text Color
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -465,8 +501,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
                       ),
                       Text(
                         author,
-                        style: const TextStyle(
-                          color: AppColor.textSecondary,
+                        style: TextStyle(
+                          color: colors.onSurface.withValues(alpha: 0.6),
                           fontSize: 14,
                         ),
                       ),
@@ -475,8 +511,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(
                           category,
-                          style: const TextStyle(
-                            color: AppColor.textSecondary,
+                          style: TextStyle(
+                            color: colors.onSurface.withValues(alpha: 0.6),
                             fontSize: 13,
                           ),
                         ),
@@ -485,15 +521,15 @@ class _BookShareScreenState extends State<BookShareScreen> {
 
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on_outlined,
                             size: 16,
-                            color: AppColor.iconSecondary,
+                            color: colors.onSurface.withValues(alpha: 0.5),
                           ),
                           Text(
                             'Phnom Penh • $distance',
-                            style: const TextStyle(
-                              color: AppColor.textSecondary,
+                            style: TextStyle(
+                              color: colors.onSurface.withValues(alpha: 0.6),
                               fontSize: 13,
                             ),
                           ),
@@ -504,8 +540,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           readers ?? "0 previous readers",
-                          style: const TextStyle(
-                            color: AppColor.textSecondary,
+                          style: TextStyle(
+                            color: colors.onSurface.withValues(alpha: 0.6),
                             fontSize: 13,
                           ),
                         ),
@@ -515,8 +551,8 @@ class _BookShareScreenState extends State<BookShareScreen> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           daysAgo,
-                          style: const TextStyle(
-                            color: AppColor.textSecondary,
+                          style: TextStyle(
+                            color: colors.onSurface.withValues(alpha: 0.6),
                             fontSize: 13,
                           ),
                         ),
@@ -533,18 +569,18 @@ class _BookShareScreenState extends State<BookShareScreen> {
                                 ? NetworkImage(ownerImageUrl)
                                 : null,
                             child: ownerImageUrl == null
-                                ? const Icon(
+                                ? Icon(
                                     Icons.person,
                                     size: 18,
-                                    color: AppColor.iconPrimary,
+                                    color: colors.onSurface,
                                   )
                                 : null,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             user,
-                            style: const TextStyle(
-                              color: AppColor.textPrimary,
+                            style: TextStyle(
+                              color: colors.onSurface,
                               fontWeight: FontWeight.w500,
                               fontSize: 13,
                             ),

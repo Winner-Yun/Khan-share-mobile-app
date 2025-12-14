@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart'; // Changed from provider to get
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:khan_share_mobile_app/config/appColors.dart';
+import 'package:khan_share_mobile_app/config/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,13 +14,12 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // State variables for switches
   bool _bookRequests = true;
-  bool _darkMode = false;
-
-  // Image Picker state
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
+
+  // Initialize controller
+  final ThemeController _themeController = Get.put(ThemeController());
 
   Future<void> _pickImage() async {
     try {
@@ -26,9 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         source: ImageSource.gallery,
       );
       if (pickedFile != null) {
-        setState(() {
-          _profileImage = File(pickedFile.path);
-        });
+        setState(() => _profileImage = File(pickedFile.path));
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -37,124 +36,143 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Access the custom theme data defined in AppTheme
+    final theme = Theme.of(context);
+    // Helper for main text/icon color (Black in Light, White in Dark)
+    final mainColor = theme.iconTheme.color ?? Colors.black;
+    // Helper for outline/secondary elements
+    final outlineColor = Colors.grey;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Cleaner, cooler grey
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_outlined,
-            color: AppColor.textAppbar,
+            color: theme.appBarTheme.iconTheme?.color,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           "Settings",
-          style: TextStyle(
-            color: AppColor.textAppbar,
-            fontWeight: FontWeight.bold,
+          style: GoogleFonts.poppins(
+            // Use dynamic primary color
+            color: Colors.amber,
+            fontWeight: FontWeight.w600,
             fontSize: 18,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage("assets/images/background.jpg"),
-              fit: BoxFit.cover,
-            ),
           ),
         ),
         centerTitle: true,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: Colors.grey[100], height: 1.0),
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: outlineColor.withValues(alpha: 0.1),
+            height: 1,
+          ),
         ),
       ),
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            _buildProfileHeader(),
+            _buildProfileHeader(mainColor, outlineColor),
             const SizedBox(height: 30),
 
-            _buildSectionHeader("Account"),
-            _buildCardContainer([
+            _buildSectionHeader("Account", outlineColor),
+            _buildCardContainer(theme, outlineColor, [
               _buildListTile(
+                mainColor,
+                outlineColor,
                 icon: Icons.person_outline_rounded,
                 title: "Personal Info",
-                onTap: () {},
               ),
-              _buildDivider(),
+              _buildDivider(outlineColor),
               _buildListTile(
+                mainColor,
+                outlineColor,
                 icon: Icons.language_rounded,
                 title: "Language",
                 trailingText: "English",
-                onTap: () {},
               ),
-              _buildDivider(),
+              _buildDivider(outlineColor),
               _buildListTile(
+                mainColor,
+                outlineColor,
                 icon: Icons.location_on_outlined,
                 title: "Location",
-                onTap: () {},
               ),
-              _buildDivider(),
+              _buildDivider(outlineColor),
               _buildListTile(
+                mainColor,
+                outlineColor,
                 icon: Icons.lock_outline_rounded,
                 title: "Security",
-                onTap: () {},
               ),
             ]),
 
             const SizedBox(height: 24),
-            _buildSectionHeader("Preferences"),
-            _buildCardContainer([
+
+            _buildSectionHeader("Preferences", outlineColor),
+            _buildCardContainer(theme, outlineColor, [
               _buildSwitchTile(
+                mainColor,
                 icon: Icons.notifications_outlined,
                 title: "Notifications",
                 value: _bookRequests,
                 onChanged: (v) => setState(() => _bookRequests = v),
               ),
-              _buildDivider(),
-              _buildSwitchTile(
-                icon: Icons.dark_mode_outlined,
-                title: "Dark Mode",
-                value: _darkMode,
-                onChanged: (v) => setState(() => _darkMode = v),
+              _buildDivider(outlineColor),
+
+              // WRAPPED IN OBX FOR REACTIVE THEME SWITCHING
+              Obx(
+                () => _buildSwitchTile(
+                  mainColor,
+                  icon: Icons.dark_mode_outlined,
+                  title: "Dark Mode",
+                  value: _themeController.isDark.value,
+                  onChanged: (v) => _themeController.toggleTheme(v),
+                ),
               ),
             ]),
 
             const SizedBox(height: 24),
-            _buildSectionHeader("Support"),
-            _buildCardContainer([
+
+            _buildSectionHeader("Support", outlineColor),
+            _buildCardContainer(theme, outlineColor, [
               _buildListTile(
+                mainColor,
+                outlineColor,
                 icon: Icons.help_outline_rounded,
                 title: "Help Center",
-                onTap: () {},
               ),
-              _buildDivider(),
+              _buildDivider(outlineColor),
               _buildListTile(
+                mainColor,
+                outlineColor,
                 icon: Icons.shield_outlined,
                 title: "Privacy & Terms",
-                onTap: () {},
               ),
-              _buildDivider(),
+              _buildDivider(outlineColor),
               _buildListTile(
+                mainColor,
+                outlineColor,
                 icon: Icons.info_outline_rounded,
                 title: "About Khan Share",
                 trailingText: "v1.0.0",
-                onTap: () {},
               ),
             ]),
 
             const SizedBox(height: 32),
-            _buildLogoutButton(),
+            _buildLogoutButton(theme),
 
             const SizedBox(height: 40),
-            const Text(
+            Text(
               "Khan Share • Built for Readers",
               style: TextStyle(
-                color: Colors.grey,
+                color: outlineColor.withValues(alpha: 0.7),
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
@@ -166,48 +184,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // --- Widget Builders ---
+  // ----------------------------------
+  // -------- Widget Builders ---------
+  // ----------------------------------
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(Color mainColor, Color outlineColor) {
     return Row(
       children: [
         Stack(
           children: [
             GestureDetector(
               onTap: _pickImage,
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF9C3), // Brand yellow
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                  image: _profileImage != null
-                      ? DecorationImage(
-                          image: FileImage(_profileImage!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: _profileImage == null
-                    ? Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadiusGeometry.circular(100),
-                          child: Image.network(
-                            'https://scontent.fpnh5-4.fna.fbcdn.net/v/t39.30808-1/484447987_1182847360231289_296100024115737949_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=110&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeGcZ5sCgmzALAkR1fL4kz0VO_nPc605L607-c9zrTkvrVykI1HR125_bE38xwWqOYBhJ6n4qSKWnhVhJTD-U_wj&_nc_ohc=H37nphlBj9kQ7kNvwEZ2kfw&_nc_oc=AdlN6XYsX36Mx13O8kMBeeFLPPBlOFaYEVIDDLeZqSahgHlqcZK7KOpHHjYT5iBvatM&_nc_zt=24&_nc_ht=scontent.fpnh5-4.fna&_nc_gid=CGuIYYWztUrtMGCItVsQPQ&oh=00_AfmtB1mI-0kM9YOP66jFlQBk3ueuQMtI2cVc8tCOenYFZA&oe=693C9551',
-                          ),
-                        ),
-                      )
-                    : null,
+              child: CircleAvatar(
+                radius: 35,
+                backgroundColor: outlineColor.withValues(alpha: 0.2),
+                backgroundImage: _profileImage != null
+                    ? FileImage(_profileImage!)
+                    : NetworkImage(
+                        'https://scontent.fpnh5-4.fna.fbcdn.net/v/t39.30808-1/484447987_1182847360231289_296100024115737949_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=110&ccb=1-7&_nc_sid=e99d92&_nc_eui2=AeGcZ5sCgmzALAkR1fL4kz0VO_nPc605L607-c9zrTkvrVykI1HR125_bE38xwWqOYBhJ6n4qSKWnhVhJTD-U_wj&_nc_ohc=unDKU-QJ-WQQ7kNvwEqYBLc&_nc_oc=AdmCsVKllJsccPkZ0HLwOlJmk-qep-5NdjXXcJWlQzoxkDwVRyzM-d3Mk_JfVGrgnIY&_nc_zt=24&_nc_ht=scontent.fpnh5-4.fna&_nc_gid=fB83gr3W2rE_PgyJRinwPg&oh=00_Afnaa1aED_va08hX_JojxbB6jmhfmHLVeO493EGWYKRpVQ&oe=69436511',
+                      ),
               ),
             ),
+
+            // Camera icon
             Positioned(
               bottom: 0,
               right: 0,
@@ -216,21 +215,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: const BoxDecoration(
-                    color: Color(0xFF1E293B),
+                    color: Colors.amber, // Using Primary Color explicitly
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.camera_alt,
                     size: 14,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(width: 20),
-        const Column(
+        const SizedBox(width: 15),
+
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -238,28 +238,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: mainColor,
               ),
             ),
-            SizedBox(height: 4),
-            Text(
-              "Winner.y@khmer.com",
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
+            const SizedBox(height: 4),
+            Text("Winner.y@khmer.com", style: TextStyle(color: outlineColor)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, Color outlineColor) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(bottom: 10, left: 10),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
-          color: Color(0xFF94A3B8), // Slate 400
+        style: TextStyle(
+          color: outlineColor,
           fontSize: 12,
           letterSpacing: 1.2,
           fontWeight: FontWeight.bold,
@@ -268,25 +265,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildCardContainer(List<Widget> children) {
+  Widget _buildCardContainer(
+    ThemeData theme,
+    Color outlineColor,
+    List<Widget> children,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20), // Softer corners
+        color: theme
+            .cardColor, // Uses AppColorLight.cardBackground or Dark equivalent
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: outlineColor.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(children: children),
     );
   }
 
-  Widget _buildListTile({
+  Widget _buildListTile(
+    Color mainColor,
+    Color outlineColor, {
     required IconData icon,
     required String title,
     String? trailingText,
@@ -295,8 +299,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
         borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -305,44 +309,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: const Color(
-                    0xFFFEF9C3,
-                  ).withValues(alpha: 0.5), // Softer yellow
+                  color: outlineColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  color: const Color(0xFF854D0E),
-                  size: 20,
-                ), // Dark gold icon
+                child: Icon(icon, color: mainColor, size: 20),
               ),
               const SizedBox(width: 16),
+
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
-                    color: Color(0xFF334155), // Slate 700
+                    color: mainColor,
                   ),
                 ),
               ),
+
               if (trailingText != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Text(
-                    trailingText,
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                Text(trailingText, style: TextStyle(color: outlineColor)),
+
               Icon(
                 Icons.chevron_right_rounded,
-                color: Colors.grey[300],
-                size: 22,
+                color: outlineColor.withValues(alpha: 0.4),
               ),
             ],
           ),
@@ -351,7 +341,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSwitchTile({
+  Widget _buildSwitchTile(
+    Color mainColor, {
     required IconData icon,
     required String title,
     required bool value,
@@ -365,48 +356,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: const Color(0xFFFEF9C3).withValues(alpha: 0.5),
+              color: Colors.grey.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF854D0E), size: 20),
+            child: Icon(icon, color: mainColor, size: 20),
           ),
           const SizedBox(width: 16),
+
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
-                color: Color(0xFF334155),
+                color: mainColor,
               ),
             ),
           ),
+
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: const Color(0xFFFACC15), // Vibrant Yellow
-            activeTrackColor: const Color(0xFFFEF9C3),
+            activeThumbColor: Colors.amber, // Primary color
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLogoutButton() {
+  Widget _buildDivider(Color outlineColor) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      indent: 70,
+      color: outlineColor.withValues(alpha: 0.1),
+    );
+  }
+
+  Widget _buildLogoutButton(ThemeData theme) {
     return TextButton(
       onPressed: () {},
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        backgroundColor: Colors.white,
+        backgroundColor: theme.cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.red.withValues(alpha: 0.1)),
+          side: BorderSide(color: Colors.red.withValues(alpha: 0.3)),
         ),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+        children: const [
+          Icon(Icons.logout_rounded, color: Colors.redAccent),
           SizedBox(width: 8),
           Text(
             "Log Out",
@@ -418,15 +419,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      indent: 70,
-      color: Colors.grey[100],
     );
   }
 }

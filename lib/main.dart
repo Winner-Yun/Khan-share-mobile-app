@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // import Google Fonts
-import 'package:khan_share_mobile_app/screens/mainappdisplay.dart';
+import 'package:get/get.dart';
+import 'package:khan_share_mobile_app/config/appThame.dart';
+import 'package:khan_share_mobile_app/config/theme_provider.dart';
+import 'package:khan_share_mobile_app/routes/app_routes.dart';
 
-  void main() {
+void main() {
+  Get.put(ThemeController());
   runApp(const MyApp());
 }
 
@@ -11,10 +14,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(textTheme: GoogleFonts.poppinsTextTheme()),
-      home: const Mainappdisplay(),
+    final themeController = Get.find<ThemeController>();
+
+    return Obx(
+      () => GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+
+        themeMode: themeController.isDark.value
+            ? ThemeMode.dark
+            : ThemeMode.light,
+
+        getPages: AppRoutes.pages,
+        initialRoute: AppRoutes.mainAppdisplay,
+      ),
     );
   }
 }
