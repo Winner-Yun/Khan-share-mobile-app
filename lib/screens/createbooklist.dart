@@ -138,7 +138,6 @@ class _CreatebooklistState extends State<Createbooklist> {
     return AppBar(
       elevation: 0,
       centerTitle: true,
-      backgroundColor: Colors.transparent, // Allow image to show
       leading: IconButton(
         icon: Icon(Icons.arrow_back_ios_new, color: Colors.amber),
         onPressed: () => Navigator.pop(context),
@@ -154,11 +153,10 @@ class _CreatebooklistState extends State<Createbooklist> {
       ),
       flexibleSpace: Container(
         decoration: BoxDecoration(
-          color: Colors.black, // Fallback background
           image: DecorationImage(
             image: AssetImage("assets/images/background.jpg"),
             fit: BoxFit.cover,
-            opacity: isDark ? 0.2 : 0,
+            opacity: isDark ? 0.2 : 0.7,
           ),
         ),
       ),
